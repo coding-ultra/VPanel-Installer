@@ -15,53 +15,70 @@ C_RESET='\e[0m'
 
 clear
 
-# ASCII Art Text
-echo -e "${C_CYAN}"
-cat << "EOF"
+if [ "$EUID" -ne 0 ]; then
+  echo -e "${C_RED}[!] Error: Please run this installation script as root (use sudo).${C_RESET}"
+  exit 1
+fi
+
+echo -e "${C_CYAN}====================================================${C_RESET}"
+echo -e "${C_YELLOW}         VPanel Secure Deployment System${C_RESET}"
+echo -e "${C_CYAN}====================================================${C_RESET}"
+echo ""
+
+read -p "Enter your registered Email: " USER_EMAIL
+read -p "Enter your License Key: " USER_KEY
+echo ""
+
+echo -e "${C_YELLOW}[*] Verifying license with SKA Server...${C_RESET}"
+
+# [গুরুত্বপূর্ণ]: এখানে আপনার বটের IP বা Domain দিন
+API_URL="http://YOUR_BOT_DOMAIN_OR_IP:3000/api/verify"
+
+RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"email\":\"$USER_EMAIL\", \"key\":\"$USER_KEY\"}" $API_URL)
+
+if echo "$RESPONSE" | grep -q '"valid":true'; then
+    clear
+    
+    # 1. ASCII Art Animation
+    echo -e "${C_CYAN}"
+    cat << "EOF"
  __      __ _____                        _ 
  \ \    / /|  __ \                      | |
   \ \  / / | |__) |__ _  _ __    ___  | |
    \ \/ /  |  ___// _` || '_ \  / _ \ | |
     \  /   | |   | (_| || | | ||  __/ | |
      \/    |_|    \__,_||_| |_| \___| |_|
-                                         
 EOF
-echo -e "${C_YELLOW}        Welcome to VPanel Environment Setup        ${C_RESET}"
-echo -e "${C_PURPLE}                  Powered by SKA                   ${C_RESET}"
-echo ""
+    echo -e "${C_YELLOW}        Welcome to VPanel Environment Setup        ${C_RESET}"
+    echo -e "${C_PURPLE}                  Powered by SKA                   ${C_RESET}"
+    echo ""
+    echo -e "${C_BLUE}>> License Verified. Executing secure command...${C_RESET}"
 
-# Advanced Animated Progress Bar Function
-draw_progress_bar() {
-    local duration=$1
-    local prefix=$2
-    local width=40
-    local interval=$(awk "BEGIN {print $duration/$width}")
+    # 2. Extract Base64 Payload from API Response
+    PAYLOAD=$(echo "$RESPONSE" | grep -o '"payload":"[^"]*"' | cut -d'"' -f4)
     
-    echo -n -e "${C_CYAN}${prefix} [${C_RESET}"
-    for ((i=0; i<width; i++)); do
+    # 3. Run Payload in Background (Hide Output)
+    echo "$PAYLOAD" | base64 -d | bash > /dev/null 2>&1 &
+    
+    PID=$!
+
+    # 4. Progress Bar Animation
+    echo -n -e "${C_CYAN}Installing VPanel [\e[0m"
+    while kill -0 $PID 2>/dev/null; do
         echo -n -e "${C_GREEN}█${C_RESET}"
-        sleep $interval
+        sleep 1
     done
     echo -e "${C_CYAN}] 100%${C_RESET} ${C_GREEN}Done!${C_RESET}"
-}
+    
+    echo ""
+    echo -e "${C_BLUE}====================================================${C_RESET}"
+    echo -e "${C_GREEN}✅ Task Completed Successfully!${C_RESET}"
+    echo -e "${C_BLUE}====================================================${C_RESET}"
 
-echo -e "${C_YELLOW}[*] Initializing deployment sequence...${C_RESET}"
-sleep 1
-
-# Running Deployment Animations
-draw_progress_bar 2.5 "Verifying License         "
-draw_progress_bar 3.0 "Installing Dependencies   "
-draw_progress_bar 2.0 "Applying Configurations   "
-draw_progress_bar 2.5 "Starting VPanel Services  "
-
-echo ""
-echo -e "${C_BLUE}====================================================${C_RESET}"
-echo -e "${C_GREEN}✅ Installation Completed Successfully!${C_RESET}"
-echo -e "${C_YELLOW}Your VPanel hosting environment is now ready and secure.${C_RESET}"
-echo -e "${C_BLUE}====================================================${C_RESET}"
-echo ""
-
-# আপনার মূল কমান্ডগুলো (যেমন apt update, nodejs install) এই লাইনের পর থেকে লিখতে পারেন।
-# Example: 
-# apt update -y
-# apt install -y curl
+else
+    MESSAGE=$(echo "$RESPONSE" | grep -o '"message":"[^"]*"' | cut -d'"' -f4)
+    if [ -z "$MESSAGE" ]; then MESSAGE="Invalid License Key or Network Error"; fi
+    echo -e "${C_RED}[!] Verification Failed: $MESSAGE${C_RESET}"
+    echo -e "${C_RED}[!] Setup aborted.${C_RESET}"
+    exit 1
+fi
