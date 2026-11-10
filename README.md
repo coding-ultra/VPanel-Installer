@@ -1,3 +1,3 @@
 # ☘️ Installer
 
-```bash <(curl -sL https://vpanel.vizion.cyou)```
+``bash <(curl -sL https://vpanel.vizion.cyou)``
