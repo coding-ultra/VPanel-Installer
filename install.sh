@@ -32,7 +32,7 @@ echo ""
 echo -e "${C_YELLOW}[*] Verifying license with SKA Server...${C_RESET}"
 
 # [গুরুত্বপূর্ণ]: এখানে আপনার বটের IP বা Domain দিন
-API_URL="http://YOUR_BOT_DOMAIN_OR_IP:3000/api/verify"
+API_URL="http://78.154.103.12:16935/api/verify"
 
 RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"email\":\"$USER_EMAIL\", \"key\":\"$USER_KEY\"}" $API_URL)
 
