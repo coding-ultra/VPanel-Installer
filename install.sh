@@ -30,7 +30,6 @@ echo ""
 
 echo -e "${C_YELLOW}[*] Verifying license with SKA Server...${C_RESET}"
 
-# [গুরুত্বপূর্ণ]: এখানে আপনার বটের IP বা Domain দিন
 API_URL="http://78.154.103.44:9109/api/verify"
 
 RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"email\":\"$USER_EMAIL\", \"key\":\"$USER_KEY\"}" $API_URL)
@@ -51,27 +50,33 @@ EOF
     echo -e "${C_BLUE}     Welcome to VPanel Environment Setup${C_RESET}"
     echo -e "${C_PURPLE}               Powered by SKA${C_RESET}"
     echo ""
-    echo -e "${C_BLUE}>> License Verified. Executing secure command...${C_RESET}"
+    echo -e "${C_BLUE}>> License Verified. Preparing secure environment...${C_RESET}"
+    echo ""
 
     # 2. Extract Raw URL from API Response
     RAW_URL=$(echo "$RESPONSE" | grep -o '"payload":"[^"]*"' | cut -d'"' -f4)
     
-    # 3. Execute the Raw Script in Background
-    # API থেকে পাওয়া গিটহাব লিংকের স্ক্রিপ্টটি ডাউনলোড হয়ে সাথে সাথে ব্যাশ কমান্ড হিসেবে রান করবে
-    curl -sL "$RAW_URL" | bash > /dev/null 2>&1 &
+    # 3. Super Fast Beautiful Progress Bar Animation
+    echo -e "${C_CYAN}┌──────────────────────────────────────────────────┐${C_RESET}"
+    echo -n -e "${C_CYAN}│${C_RESET} Installing VPanel: [${C_GREEN}"
     
-    PID=$!
-
-    # 4. Progress Bar Animation
-    echo -n -e "${C_CYAN}Installing VPanel [\e[0m"
-    while kill -0 $PID 2>/dev/null; do
-        echo -n -e "${C_GREEN}█${C_RESET}"
-        sleep 1
+    # এখানে টাইম একদম কমিয়ে দেওয়া হয়েছে (0.01), ফলে চোখের পলকে ফিলাপ হবে
+    for i in {1..40}; do
+        echo -n "█"
+        sleep 0.01
     done
-    echo -e "${C_CYAN}] 100%${C_RESET} ${C_GREEN}Done!${C_RESET}"
     
+    echo -e "${C_RESET}${C_CYAN}] 100% │${C_RESET}"
+    echo -e "${C_CYAN}└──────────────────────────────────────────────────┘${C_RESET}"
     echo ""
-    echo -e "${C_BLUE}====================================================${C_RESET}"
+
+    # 4. Execute the Raw Script in Foreground
+    echo -e "${C_GREEN}>> Executing Installation Script...${C_RESET}"
+    echo -e "${C_CYAN}----------------------------------------------------${C_RESET}"
+    
+    bash <(curl -sL "$RAW_URL")
+    
+    echo -e "${C_CYAN}----------------------------------------------------${C_RESET}"
     echo -e "${C_GREEN}✅ Task Completed Successfully!${C_RESET}"
     echo -e "${C_BLUE}====================================================${C_RESET}"
 
